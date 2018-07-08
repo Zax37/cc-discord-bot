@@ -32,7 +32,8 @@ client.query('CREATE TABLE IF NOT EXISTS QUOTES (id varchar(20) PRIMARY KEY, tex
 const express = require('express');
 const app = express();
 
-app.get('/', (req, res) => res.send(quotes));
+app.set('json spaces', 4);
+app.get('/', (req, res) => res.json(quotes));
 app.listen(process.env.PORT || 5000, () => console.log('Listening on port '+(process.env.PORT || 5000)));
 
 // Initialize Discord Bot
