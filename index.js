@@ -74,6 +74,7 @@ bot.on('message', message => {
 				message.mentions.users.forEach(user => {
 					user.send('<:artur:366979293466722305> CHEW ON ' + (random ? 'THIS!' : 'THAT!'));
 				});
+				message.react(message.guild.emojis.get('366979293466722305'));
             break;
          }
      }
