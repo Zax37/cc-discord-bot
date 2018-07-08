@@ -33,7 +33,7 @@ const express = require('express');
 const app = express();
 
 app.set('json spaces', 4);
-app.get('/', (req, res) => res.json(quotes));
+app.get('/', (req, res) => res.json({quotes}));
 app.listen(process.env.PORT || 5000, () => console.log('Listening on port '+(process.env.PORT || 5000)));
 
 // Initialize Discord Bot
