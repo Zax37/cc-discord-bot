@@ -2,9 +2,12 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').load();
 }
 
-var Discord = require('discord.io');
-var logger = require('winston');
+const Discord = require('discord.js');
+const logger = require('winston');
 logger.level = 'debug';
+
+const quotes = {};
+
 const { Client } = require('pg')
 const client = new Client({
 	connectionString: process.env.DATABASE_URL
@@ -13,7 +16,7 @@ const client = new Client({
 // Initialize postgres database connection and tables
 client.connect()
 
-const quotes = {};
+
 client.query('CREATE TABLE IF NOT EXISTS QUOTES (id varchar(20) PRIMARY KEY, text text);')
 	.then(_ => 
 		client.query('SELECT * FROM QUOTES;')
@@ -37,20 +40,18 @@ app.get('/', (req, res) => res.json({quotes}));
 app.listen(process.env.PORT || 5000, () => console.log('Listening on port '+(process.env.PORT || 5000)));
 
 // Initialize Discord Bot
-var bot = new Discord.Client({
-   token: process.env.BOT_TOKEN,
-   autorun: true
-});
+const bot = new Discord.Client();
 
 bot.on('ready', function (evt) {
     logger.info('Connected');
     logger.info('Logged in as: ');
-    logger.info(bot.username + ' - (' + bot.id + ')');
-	bot.setPresence({ game: { name: 'Claw', type: 0 } });
+	bot.user.setActivity('for commands', { type: 'LISTENING' });
+	bot.user.setUsername('Claw')
 });
-bot.on('message', function (user, userID, channelID, message, evt) {
-    if (message.substring(0, 1) == '/') {
-        var args = message.substring(1).split(' ');
+
+bot.on('message', message => {
+    if (message.content.substring(0, 1) == '/') {
+        var args = message.content.substring(1).split(' ');
         var cmd = args[0];
        
         args = args.splice(1);
@@ -58,31 +59,24 @@ bot.on('message', function (user, userID, channelID, message, evt) {
             case 'quote':
 				if (args[0] == 'add') {
 					var id = args[1];
-					args = args.splice(2);
 					quotes[id] = args.join(" ");
 					client.query('INSERT INTO QUOTES VALUES($1::text, $2::text);', [id, quotes[id]])
 						.catch(e => {
-							bot.sendMessage({
-								to: channelID,
-								message: "Sorry, I've had some problem inserting this quote :("
-							});
+							message.channel.send("Sorry, I've had some problem inserting this quote :(");
 							console.error(e.stack);
 						});
 				} else {
 					var id = args[0];
-					args = args.splice(1);
-					bot.sendMessage({
-						to: channelID,
-						message: "```\n" + quotes[id] + "\n```"
-					});
+					message.channel.send("```\n" + quotes[id] + "\n```");
 				}
             case 'slap':
 				var random = Math.random() >= 0.5;
-				console.log(message);
 				message.mentions.users.forEach(user => {
-					user.sendMessage('<:artur:366979293466722305> CHEW ON ' + (random ? 'THIS!' : 'THAT!'));
+					user.send('<:artur:366979293466722305> CHEW ON ' + (random ? 'THIS!' : 'THAT!'));
 				});
             break;
          }
      }
 });
+
+bot.login(process.env.BOT_TOKEN);
