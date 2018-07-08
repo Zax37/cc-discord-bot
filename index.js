@@ -14,12 +14,15 @@ const client = new Client({
 client.connect()
 
 var quotes = [];
-client.query('CREATE TABLE IF NOT EXISTS QUOTES (id varchar(20), text text);')
-  .then(_ => 
-	client.query('SELECT * FROM QUOTES;')
-	.then(res => console.log(res.rows))
-	.catch(e => console.error(e.stack))
-  ).catch(e => console.error(e.stack));
+client.query('CREATE TABLE IF NOT EXISTS QUOTES (id varchar(20) PRIMARY KEY, text text);')
+	.then(_ => 
+		client.query('SELECT * FROM QUOTES;')
+		.then(res => res.rows.forEach(
+			(el) => {
+				quotes[el.id] = el.text;
+			}
+		)).catch(e => console.error(e.stack))
+	).catch(e => console.error(e.stack));
 
 /*client.query('SELECT $1::text as message', ['Hello world!'], (err,res) => {
 	console.log(res.rows[0].message) // Hello world!
