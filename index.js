@@ -13,7 +13,7 @@ const client = new Client({
 // Initialize postgres database connection and tables
 client.connect()
 
-var quotes = [];
+const quotes = {};
 client.query('CREATE TABLE IF NOT EXISTS QUOTES (id varchar(20) PRIMARY KEY, text text);')
 	.then(_ => 
 		client.query('SELECT * FROM QUOTES;')
