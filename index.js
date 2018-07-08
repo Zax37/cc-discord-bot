@@ -63,7 +63,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					args = args.splice(1);
 					bot.sendMessage({
 						to: channelID,
-						message: quotes[id]
+						message: "```\n" + quotes[id] + "\n```"
 					});
 				}
             case 'slap':
