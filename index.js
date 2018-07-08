@@ -78,6 +78,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				}
             case 'slap':
 				var random = Math.random() >= 0.5;
+				console.log(message);
 				message.mentions.users.forEach(user => {
 					user.sendMessage('<:artur:366979293466722305> CHEW ON ' + (random ? 'THIS!' : 'THAT!'));
 				});
