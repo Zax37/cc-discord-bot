@@ -29,6 +29,12 @@ client.query('CREATE TABLE IF NOT EXISTS QUOTES (id varchar(20) PRIMARY KEY, tex
 	client.end()
 });*/
 
+const express = require('express');
+const app = express();
+
+app.get('/', (req, res) => res.send(quotes));
+app.listen(process.env.PORT || 5000, () => console.log('Listening on port '+(process.env.PORT || 5000)));
+
 // Initialize Discord Bot
 var bot = new Discord.Client({
    token: process.env.BOT_TOKEN,
