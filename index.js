@@ -77,13 +77,10 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					});
 				}
             case 'slap':
-				if (args[0] && args[0].substring(0, 2) == '<@') {
-					var random = Math.random() >= 0.5;
-					bot.sendMessage({
-						to: channelID,
-						message: args[0] + ' <:artur:366979293466722305> CHEW ON ' + (random ? 'THIS!' : 'THAT!') 
-					});
-				}
+				var random = Math.random() >= 0.5;
+				message.mentions.users.forEach(user => {
+					user.sendMessage('<:artur:366979293466722305> CHEW ON ' + (random ? 'THIS!' : 'THAT!'));
+				});
             break;
          }
      }
