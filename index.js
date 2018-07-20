@@ -1,52 +1,45 @@
+const http = require('http');
+const Discord = require('discord.js');
+const low = require('lowdb');
+const FileSync = require('lowdb/adapters/FileSync');
+const fs = require('fs');
+
+let botname = "Claw"
+
 if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').load();
+	require('dotenv').load();
+	botname = "TestClaw"
 }
 
-const Discord = require('discord.js');
-const logger = require('winston');
-logger.level = 'debug';
+const port = process.env.PORT;
 
-const quotes = {};
+// Open json database
+const adapter = new FileSync('db.json');
+const db = low(adapter);
 
-const { Client } = require('pg')
-const client = new Client({
-	connectionString: process.env.DATABASE_URL
-});
+// Set some defaults (required if JSON file is empty)
+db.defaults({ quotes: [] })
+  .write()
 
-// Initialize postgres database connection and tables
-client.connect()
-
-
-client.query('CREATE TABLE IF NOT EXISTS QUOTES (id varchar(20) PRIMARY KEY, text text);')
-	.then(_ => 
-		client.query('SELECT * FROM QUOTES;')
-		.then(res => res.rows.forEach(
-			(el) => {
-				quotes[el.id] = el.text;
-			}
-		)).catch(e => console.error(e.stack))
-	).catch(e => console.error(e.stack));
-
-/*client.query('SELECT $1::text as message', ['Hello world!'], (err,res) => {
-	console.log(res.rows[0].message) // Hello world!
-	client.end()
-});*/
-
-const express = require('express');
-const app = express();
-
-app.set('json spaces', 4);
-app.get('/', (req, res) => res.json({quotes}));
-app.listen(process.env.PORT || 5000, () => console.log('Listening on port '+(process.env.PORT || 5000)));
+// Start minimal UI endpoint
+http.createServer(function (req, res) {
+	if (req.url === '/') {
+		res.writeHead(200, {'Content-Type': 'text/plain'});
+		res.write(JSON.stringify(db.get('quotes').value()), null, 4);
+		res.end();
+	} else {
+		res.writeHead(404);
+		res.end();
+	}
+}).listen(port);
 
 // Initialize Discord Bot
 const bot = new Discord.Client();
 
 bot.on('ready', function (evt) {
-    logger.info('Connected');
-    logger.info('Logged in as: ');
 	bot.user.setActivity('for commands', { type: 'LISTENING' });
-	bot.user.setUsername('Claw')
+	bot.user.setUsername(botname);
+	console.log('Connected as '+botname);
 });
 
 bot.on('message', message => {
@@ -56,19 +49,56 @@ bot.on('message', message => {
        
         args = args.splice(1);
         switch(cmd) {
+			case 'download':
+				if (args[0] == '<:CrazyHook:403620438862856192>' || args[0] == 'ch' || args[0] == 'CH'
+					|| args[0] == 'crazyhook' || args[0] == 'CrazyHook') {
+					message.channel.send("http://uploadfile.pl/pokaz/1448369---n92j.html");
+				} else if (args[0] == '<:extralife:464171299271344150>' || args[0] == '<:ThanksForNotAbortingMe:403619789559431168>'
+					|| args[0] == 'claw' || args[0] == 'cc') {
+					message.channel.send("http://kapitanpazur.piasta.pl/dl/claw_rip.zip");
+				} else if (args[0] == '<:wapmap:464169953336098817>' || args[0] == 'wapmap' || args[0] == 'wm') {
+					message.channel.send("http://kapitanpazur.piasta.pl/dl/wapmap.zip");
+				}
+			break;
+			case 'play':
+				if (args[0] == 'hax') {
+					message.channel.send("Sorry, haxball is not nice to bots :( You'll have to create room yourself: https://haxball.com/play");
+				}
+			break;
             case 'quote':
 				if (args[0] == 'add') {
-					var id = args[1];
-					quotes[id] = args.join(" ");
-					client.query('INSERT INTO QUOTES VALUES($1::text, $2::text);', [id, quotes[id]])
-						.catch(e => {
-							message.channel.send("Sorry, I've had some problem inserting this quote :(");
-							console.error(e.stack);
-						});
+					const id = args[1];
+					if (message.mentions.users.size === 0) {
+						let text = args.splice(2).join(" ");
+						db.get('quotes')
+							.push({id, text})
+							.write()
+					} else {
+						message.react('❓');
+					}
 				} else {
 					var id = args[0];
-					message.channel.send("```\n" + quotes[id] + "\n```");
+					let text = db.get('quotes')
+						.filter({id})
+						.map('text')
+						.value()[0];
+					if (text) {
+						message.channel.send({
+							embed: {
+								color: 3447003,
+								author: {
+								  name: bot.user.username,
+								  icon_url: bot.user.avatarURL
+								},
+								description: text,
+								timestamp: new Date()
+							}
+						});
+					} else {
+						message.react('❓');
+					}
 				}
+			break;
             case 'slap':
 				var random = Math.random() >= 0.5;
 				message.mentions.users.forEach(user => {
