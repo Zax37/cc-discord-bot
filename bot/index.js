@@ -14,6 +14,10 @@ class Bot {
     commandGroup.add(new commands.SlapCommand(bot), ["slap"]);
     commandGroup.add(new commands.ImageCommand("https://cdn.discordapp.com/emojis/464175681304133639.gif?v=1"), ["lol"]);
 
+    bot.on('error', function(error) {
+      console.error(error);
+    });
+    
     bot.on('ready', function (evt) {
       bot.user.setActivity('for commands', { type: 'LISTENING' });
       bot.user.setUsername(name);
